@@ -1,24 +1,29 @@
 name: CI devops 2024
 on:
-  #to begin you want to launch this job in main and develop
+  # Trigger the workflow on push to the main branch or pull request targeting the main branch
   push:
-    branches: main
+    branches:
+      - main
   pull_request:
-    branches: main
+    branches:
+      - main
 
 jobs:
   test-backend:
     runs-on: ubuntu-22.04
     steps:
-      #checkout your github code using actions/checkout@v2.5.0
-      - uses: actions/checkout@v2.5.0
+      # Checkout your GitHub code using actions/checkout@v2.5.0
+      - name: Checkout repository
+        uses: actions/checkout@v2.5.0
 
-      #do the same with another action (actions/setup-java@v3) that enable to setup jdk 17
+      # Set up JDK 17 using actions/setup-java@v3
       - name: Set up JDK 17
-        run: actions/setup-java@v3
-        working-directory: ./simple-api
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
 
-      #finally build your app with the latest command
+      # Build and test your app with Maven
       - name: Build and test with Maven
         run: mvn -B package --file pom.xml
         working-directory: ./simple-api
