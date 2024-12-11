@@ -28,6 +28,10 @@ jobs:
         run: mvn -B package --file pom.xml
         working-directory: ./simple-api
 
+      # Analyze code with SonarCloud
+      - name: SonarCloud Scan
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=devops-2024 -Dsonar.organization=devops-school -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} --file ./simple-api/src/pom.xml
+
   # Define job to build and publish docker image
   build-and-push-docker-image:
     needs: test-backend
@@ -62,6 +66,6 @@ jobs:
       - name: Build image and push httpd
         uses: docker/build-push-action@v3
         with:
-          context: ./http-server
+          context: ./httpd
           tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-httpd:latest
           push: ${{ github.ref == 'refs/heads/main' }}
