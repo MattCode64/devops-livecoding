@@ -16,9 +16,9 @@ jobs:
       #do the same with another action (actions/setup-java@v3) that enable to setup jdk 17
       - name: Set up JDK 17
         run: actions/setup-java@v3
-        working-directory: /simple-api/src
+        working-directory: ./simple-api/src
 
       #finally build your app with the latest command
       - name: Build and test with Maven
         run: mvn -B package --file pom.xml
-        working-directory: /simple-api/src
+        working-directory: ./simple-api
