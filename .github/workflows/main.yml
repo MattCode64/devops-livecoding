@@ -1,86 +1,94 @@
 name: CI devops 2024
+
+# Define events that trigger the workflow
 on:
-  # Trigger the workflow on push to the main branch or pull request targeting the main branch
+  # Trigger on pushes to the main branch
   push:
     branches:
       - main
+  # Trigger on pull requests targeting the main branch
   pull_request:
     branches:
       - main
 
 jobs:
   test-backend:
+    # Specify the runner environment
     runs-on: ubuntu-22.04
     steps:
-      # Checkout your GitHub code using actions/checkout@v2.5.0
+      # Step 1: Checkout the code from the repository
       - name: Checkout repository
         uses: actions/checkout@v2.5.0
 
-      # Set up JDK 17 using actions/setup-java@v3
+      # Step 2: Set up Java Development Kit (JDK) version 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          distribution: "temurin"
-          java-version: "17"
+          distribution: "temurin" # Use Temurin distribution of JDK
+          java-version: "17" # Specify JDK version
 
+      # Step 3: Cache SonarQube analysis packages
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          path: ~/.sonar/cache # Path to cache directory
+          key: ${{ runner.os }}-sonar # Cache key based on OS
+          restore-keys: ${{ runner.os }}-sonar # Restore key for fallback
 
+      # Step 4: Cache Maven dependencies
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          path: ~/.m2 # Maven cache directory
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }} # Cache key based on OS and Maven project hash
+          restore-keys: ${{ runner.os }}-m2 # Fallback restore key
+
+      # Step 5: Build the project and run SonarQube analysis
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token for GitHub API access
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Token for SonarQube authentication
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=MattCode64_devops-livecoding
 
-      # Build and test your app with Maven
+      # Step 6: Build and test the application using Maven
       - name: Build and test with Maven
-        run: mvn -B package --file pom.xml
-        working-directory: ./simple-api
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=devops-2024 -Dsonar.organization=devops-school -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} --file ./simple-api/pom.xml
+        working-directory: ./simple-api # Specify the working directory
 
-  # Define job to build and publish docker image
+  # Define a job to build and publish Docker images
   build-and-push-docker-image:
-    needs: test-backend
-    # Run only when code is compiling and tests are passing
+    needs: test-backend # Depend on the successful completion of test-backend job
     runs-on: ubuntu-22.04
 
-    # Steps to perform in job
     steps:
+      # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v2.5.0
 
+      # Step 2: Log in to DockerHub
       - name: Login to DockerHub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
 
+      # Step 3: Build and push Docker image for the backend
       - name: Build image and push backend
         uses: docker/build-push-action@v3
         with:
-          # Relative path to the place where source code with Dockerfile is located
-          context: ./simple-api
-          # Note: tags has to be all lower-case
-          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-simple-api:latest
-          # Build on feature branches, push only on main branch
-          push: ${{ github.ref == 'refs/heads/main' }}
+          context: ./simple-api # Specify the context for the Dockerfile
+          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-simple-api:latest # Define image tag
+          push: ${{ github.ref == 'refs/heads/main' }} # Push only for main branch
 
+      # Step 4: Build and push Docker image for the database
       - name: Build image and push database
         uses: docker/build-push-action@v3
         with:
-          context: ./database
-          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-database:latest
-          push: ${{ github.ref == 'refs/heads/main' }}
+          context: ./database # Specify the context for the Dockerfile
+          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-database:latest # Define image tag
+          push: ${{ github.ref == 'refs/heads/main' }} # Push only for main branch
 
+      # Step 5: Build and push Docker image for the HTTP server
       - name: Build image and push httpd
         uses: docker/build-push-action@v3
         with:
-          context: ./http-server
-          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-httpd:latest
-          push: ${{ github.ref == 'refs/heads/main' }}
+          context: ./http-server # Specify the context for the Dockerfile
+          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-httpd:latest # Define image tag
+          push: ${{ github.ref == 'refs/heads/main' }} # Push only for main branch
