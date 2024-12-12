@@ -39,11 +39,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Nécessaire pour récupérer les informations de PR
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: ./simple-api/src
+        working-directory: ./simple-api
         run: |
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=salahbgm_devops-livecoding \
-            -Dsonar.organization=salahbgm \
+            -Dsonar.projectKey=mattcode64_devops-livecoding \
+            -Dsonar.organization=mattcode64 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
