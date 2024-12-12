@@ -42,8 +42,8 @@ jobs:
         working-directory: ./simple-api
         run: |
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=mattcode64_devops-livecoding \
-            -Dsonar.organization=mattcode64 \
+            -Dsonar.projectKey=MattCode64_devops-livecoding \
+            -Dsonar.organization=Matthieu \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
