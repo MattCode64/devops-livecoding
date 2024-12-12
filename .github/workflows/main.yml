@@ -39,7 +39,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Nécessaire pour récupérer les informations de PR
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: ./simple-api
+        working-directory: ./simple-api/src
         run: |
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=salahbgm_devops-livecoding \
