@@ -46,7 +46,7 @@ jobs:
       # Step 5: Build the project and run SonarQube analysis
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token for GitHub API access
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }} # Token for GitHub API access
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Token for SonarQube authentication
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=MattCode64_devops-livecoding
 
