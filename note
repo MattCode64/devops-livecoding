@@ -1,0 +1,77 @@
+---
+- hosts: all
+  gather_facts: true
+  become: true
+
+  tasks:
+    # Update the apt package index
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+
+    # Install required packages for Docker installation
+    - name: Install prerequisite packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: latest
+        update_cache: yes
+
+    # Add Docker’s official GPG key
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    # Set up the Docker stable repository
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_facts['distribution_release'] }} stable"
+        state: present
+        update_cache: yes
+
+    # Install Docker Engine and containerd
+    - name: Install Docker Engine and containerd
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: latest
+
+    # Ensure Docker service is started and enabled
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    # Install Python3 and pip3
+    - name: Install Python3 and pip3
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+        state: latest
+
+    # Create a virtual environment for Python packages
+    - name: Create a virtual environment for Docker SDK
+      command:
+        cmd: "python3 -m venv /opt/docker_venv"
+      args:
+        creates: /opt/docker_venv/bin/python
+
+    # Ensure pip is available in the virtual environment
+    - name: Ensure pip is installed in the virtual environment
+      command: "/opt/docker_venv/bin/python -m ensurepip"
+      args:
+        creates: /opt/docker_venv/bin/pip
+
+    # Install Docker SDK for Python in the virtual environment
+    - name: Install Docker SDK for Python in virtual environment
+      command: "/opt/docker_venv/bin/pip install docker"
